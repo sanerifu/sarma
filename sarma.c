@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
 
         memcpy(queue, nodes, sizeof(queue));
         qsort(queue, queue_size, sizeof(Node), &compareNodes);
-        while (queue[queue_size - 1].frequency == 0) {
+        while (queue_size > 0 && queue[queue_size - 1].frequency == 0) {
             queue_size -= 1;
         }
 
