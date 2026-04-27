@@ -1,0 +1,4 @@
+[submodule "estd"]
+	path = estd
+	url = https://github.com/sanerifu/estd
+	branch = main
