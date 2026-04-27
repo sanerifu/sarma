@@ -30,17 +30,17 @@ static void calculateFrequencies(EstdString data, Node result[static 256]) {
 static int compareNodes(void const* l, void const* r) {
     Node const* lhs = (Node const*)l;
     Node const* rhs = (Node const*)r;
-    if(lhs->frequency == 0) {
+    if (lhs->frequency == 0) {
         return 1;
-    } else if(rhs->frequency == 0) {
+    } else if (rhs->frequency == 0) {
         return -1;
     } else if (lhs->frequency < rhs->frequency) {
         return -1;
     } else if (lhs->frequency > rhs->frequency) {
         return 1;
-    } else if(lhs->index < rhs->index) {
+    } else if (lhs->index < rhs->index) {
         return -1;
-    } else if(lhs->index > rhs->index) {
+    } else if (lhs->index > rhs->index) {
         return 1;
     } else {
         return 0;
@@ -49,8 +49,8 @@ static int compareNodes(void const* l, void const* r) {
 
 static void printNode(Node const* node) {
     printf("%3zu\t", node->index);
-    for(int i = 0; i < 256; i++) {
-        if(node->bytes[i / 8] & (1 << (i % 8))) {
+    for (int i = 0; i < 256; i++) {
+        if (node->bytes[i / 8] & (1 << (i % 8))) {
             printf("%c", i);
         }
     }
@@ -59,13 +59,13 @@ static void printNode(Node const* node) {
 
 typedef struct Code Code;
 struct Code {
-    char data[512];
-    size_t length;
+    char data[256];
+    uint8_t length;
 };
 
 static void calculateCodes(Node nodes[static 512], size_t index, Code codes[static 256], Code* code) {
     Node const* node = &nodes[index];
-    if(node->children[0] == -1 || node->children[1] == -1) {
+    if (node->children[0] == -1 || node->children[1] == -1) {
         codes[node->index] = *code;
     } else {
         code->length += 1;
@@ -95,16 +95,16 @@ int main(int argc, char* argv[]) {
 
         memcpy(queue, nodes, sizeof(queue));
         qsort(queue, queue_size, sizeof(Node), &compareNodes);
-        while(queue[queue_size - 1].frequency == 0) {
+        while (queue[queue_size - 1].frequency == 0) {
             queue_size -= 1;
         }
 
         while (queue_size > 1) {
             Node merged = (Node
             ){.children = {queue[0].index, queue[1].index},
-            .index = next_node,
-            .frequency = queue[0].frequency + queue[1].frequency};
-            
+              .index = next_node,
+              .frequency = queue[0].frequency + queue[1].frequency};
+
             for (int i = 0; i < 32; i++) {
                 merged.bytes[i] = queue[0].bytes[i] | queue[1].bytes[i];
             }
@@ -119,8 +119,8 @@ int main(int argc, char* argv[]) {
         Code codes[256] = {0};
         Code code = {0};
         calculateCodes(nodes, next_node - 1, codes, &code);
-        for(size_t i = 0; i < 256; i++) {
-            if(codes[i].length == 0) {
+        for (size_t i = 0; i < 256; i++) {
+            if (codes[i].length == 0) {
                 continue;
             }
             printf("%2hhx (%c)\t\"%.*s\"\n", (int)i, (int)i, (int)codes[i].length, codes[i].data);
