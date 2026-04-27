@@ -57,6 +57,26 @@ static void printNode(Node const* node) {
     printf(": %zu (%d %d)\n", node->frequency, node->children[0], node->children[1]);
 }
 
+typedef struct Code Code;
+struct Code {
+    char data[512];
+    size_t length;
+};
+
+static void calculateCodes(Node nodes[static 512], size_t index, Code codes[static 256], Code* code) {
+    Node const* node = &nodes[index];
+    if(node->children[0] == -1 || node->children[1] == -1) {
+        codes[node->index] = *code;
+    } else {
+        code->length += 1;
+        code->data[code->length - 1] = '0';
+        calculateCodes(nodes, node->children[0], codes, code);
+        code->data[code->length - 1] = '1';
+        calculateCodes(nodes, node->children[1], codes, code);
+        code->length -= 1;
+    }
+}
+
 int main(int argc, char* argv[]) {
     EstdArena* ESTD_CLEAN(estd_arena_destroy) arena = NULL;
     for (int i = 1; i < argc; i++) {
@@ -95,11 +115,15 @@ int main(int argc, char* argv[]) {
             next_node += 1;
             qsort(queue, queue_size, sizeof(Node), &compareNodes);
         }
-        for(int i = 0; i < next_node; i++) {
-            if(nodes[i].frequency == 0) {
+
+        Code codes[256] = {0};
+        Code code = {0};
+        calculateCodes(nodes, next_node - 1, codes, &code);
+        for(size_t i = 0; i < 256; i++) {
+            if(codes[i].length == 0) {
                 continue;
             }
-            printNode(&nodes[i]);
+            printf("%2hhx (%c)\t\"%.*s\"\n", (int)i, (int)i, (int)codes[i].length, codes[i].data);
         }
     }
     return ESTD_SUCCESS;
