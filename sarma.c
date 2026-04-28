@@ -170,6 +170,7 @@ int main(int argc, char* argv[]) {
             struct tm* tm = gmtime(&file_stat.st_mtime);
             strftime(modification, sizeof(modification), "%Y-%m-%d %H:%M:%S", tm);
         }
+        uint32_t permissions = file_stat.st_mode & 0777;
 
         ESTD_BUBBLE(estd_read_file(&file_data, &arena, file), "Could not read input file");
         uint32_t crc32 = estd_crc32(file_data);
@@ -179,9 +180,9 @@ int main(int argc, char* argv[]) {
         fprintf(fp, "Modification-Time: %s\r\n", modification);
         fprintf(fp, "Compression: None\r\n");
         fprintf(fp, "CRC32: %08x\r\n", crc32);
+        fprintf(fp, "Permissions: %04o\r\n", permissions);
         fprintf(fp, "\r\n");
         fwrite(file_data.data, sizeof(char), file_data.length, fp);
-        fprintf(fp, "\r\n\r\n");
     }
 
     return ESTD_SUCCESS;
