@@ -172,11 +172,13 @@ int main(int argc, char* argv[]) {
         }
 
         ESTD_BUBBLE(estd_read_file(&file_data, &arena, file), "Could not read input file");
+        uint32_t crc32 = estd_crc32(file_data);
         fprintf(fp, "Content-Name: %" PRIestr "\r\n", ESTD_STRING_ARG(estd_path_get_filename(ESTD_CTRING(argv[i]))));
         fprintf(fp, "Content-Size: %zu\r\n", file_data.length);
         fprintf(fp, "Last-Accessed-Time: %s\r\n", last_access);
         fprintf(fp, "Modification-Time: %s\r\n", modification);
         fprintf(fp, "Compression: None\r\n");
+        fprintf(fp, "CRC32: %08x\r\n", crc32);
         fprintf(fp, "\r\n");
         fwrite(file_data.data, sizeof(char), file_data.length, fp);
         fprintf(fp, "\r\n\r\n");
