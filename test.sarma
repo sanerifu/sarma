@@ -5,13 +5,15 @@ Content-Name: test.txt
 Content-Size: 55
 Last-Accessed-Time: 2026-04-27 19:54:47
 Modification-Time: 2026-04-27 19:54:47
+Compression: None
 
 A_DEAD_DAD_​CEDED_A_BAD_​BABE_A_BEADED_​ABACA_BED
 
 Content-Name: sarma.c
-Content-Size: 5683
-Last-Accessed-Time: 2026-04-28 18:58:02
-Modification-Time: 2026-04-28 18:58:02
+Content-Size: 5729
+Last-Accessed-Time: 2026-04-28 19:01:14
+Modification-Time: 2026-04-28 19:01:14
+Compression: None
 
 #define ESTD_ALL_IMPLEMENTATION
 #include <stdio.h>
@@ -191,6 +193,7 @@ int main(int argc, char* argv[]) {
         fprintf(fp, "Content-Size: %zu\r\n", file_data.length);
         fprintf(fp, "Last-Accessed-Time: %s\r\n", last_access);
         fprintf(fp, "Modification-Time: %s\r\n", modification);
+        fprintf(fp, "Compression: None\r\n");
         fprintf(fp, "\r\n");
         fwrite(file_data.data, sizeof(char), file_data.length, fp);
         fprintf(fp, "\r\n\r\n");

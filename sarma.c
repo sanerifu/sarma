@@ -176,6 +176,7 @@ int main(int argc, char* argv[]) {
         fprintf(fp, "Content-Size: %zu\r\n", file_data.length);
         fprintf(fp, "Last-Accessed-Time: %s\r\n", last_access);
         fprintf(fp, "Modification-Time: %s\r\n", modification);
+        fprintf(fp, "Compression: None\r\n");
         fprintf(fp, "\r\n");
         fwrite(file_data.data, sizeof(char), file_data.length, fp);
         fprintf(fp, "\r\n\r\n");
