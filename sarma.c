@@ -144,18 +144,32 @@ int main(int argc, char* argv[]) {
         return ESTD_SUCCESS;
     }
     EstdArena* ESTD_CLEAN(estd_arena_destroy) temp = NULL;
-    EstdString sarma_file_name;
-    EstdString dolma_file_name;
+    EstdString sarma_file_name = {0};
     ESTD_BUBBLE(estd_string_format(&sarma_file_name, &temp, "%s", argv[1]), "Could not create sarma file name");
-    ESTD_BUBBLE(estd_string_format(&dolma_file_name, &temp, "%s.dolma", argv[1]), "Could not create dolma file name");
+
+    EstdStringBuilder* metadata_builder = NULL;
+
+    ESTD_BUBBLE(
+        estd_string_builder_appendf(
+            &metadata_builder,
+            &temp,
+            "SARMA %d.%d\r\n",
+            SARMA_VERSION_MAJOR,
+            SARMA_VERSION_MINOR
+        ),
+        "Could not append version"
+    );
+    ESTD_BUBBLE(
+        estd_string_builder_appendf(&metadata_builder, &temp, "File-Count: %d\r\n", argc - 2),
+        "Could not append file count"
+    );
+    ESTD_BUBBLE(
+        estd_string_builder_append(&metadata_builder, ESTD_LITERAL("\r\n"), &temp),
+        "Could not append header terminator"
+    );
 
     FILE* ESTD_CLEAN(fclose) sarma_file = fopen(sarma_file_name.data, "wb");
-    fprintf(sarma_file, "SARMA %d.%d\r\n", SARMA_VERSION_MAJOR, SARMA_VERSION_MINOR);
-    fprintf(sarma_file, "File-Count: %d\r\n", argc - 2);
-    fprintf(sarma_file, "\r\n");
 
-    FILE* ESTD_CLEAN(fclose) dolma_file = fopen(dolma_file_name.data, "wb");
-    
     for (int i = 2; i < argc; i++) {
         EstdArena* ESTD_CLEAN(estd_arena_destroy) arena = NULL;
         EstdString file_data = {0};
@@ -181,16 +195,57 @@ int main(int argc, char* argv[]) {
 
         ESTD_BUBBLE(estd_read_file(&file_data, &arena, file), "Could not read input file");
         uint32_t crc32 = estd_crc32(file_data);
-        fprintf(sarma_file, "Content-Name: %" PRIestr "\r\n", ESTD_STRING_ARG(estd_path_get_filename(ESTD_CTRING(argv[i]))));
-        fprintf(sarma_file, "Content-Size: %zu\r\n", file_data.length);
-        fprintf(sarma_file, "Last-Accessed-Time: %s\r\n", last_access);
-        fprintf(sarma_file, "Modification-Time: %s\r\n", modification);
-        fprintf(sarma_file, "Compression: None\r\n");
-        fprintf(sarma_file, "CRC32: %08x\r\n", crc32);
-        fprintf(sarma_file, "Permissions: %04o\r\n", permissions);
-        fprintf(sarma_file, "\r\n");
-        fwrite(file_data.data, sizeof(char), file_data.length, dolma_file);
+        ESTD_BUBBLE(
+            estd_string_builder_appendf(
+                &metadata_builder,
+                &temp,
+                "Content-Name: %" PRIestr "\r\n",
+                ESTD_STRING_ARG(estd_path_get_filename(ESTD_CTRING(argv[i])))
+            ),
+            "Could not append content name for %s",
+            argv[i]
+        );
+        ESTD_BUBBLE(
+            estd_string_builder_appendf(&metadata_builder, &temp, "Content-Size: %zu\r\n", file_data.length),
+            "Could not append content size for %s",
+            argv[i]
+        );
+        ESTD_BUBBLE(
+            estd_string_builder_appendf(&metadata_builder, &temp, "Last-Accessed-Time: %s\r\n", last_access),
+            "Could not append last accessed time for %s",
+            argv[i]
+        );
+        ESTD_BUBBLE(
+            estd_string_builder_appendf(&metadata_builder, &temp, "Modification-Time: %s\r\n", modification),
+            "Could not append modification time for %s",
+            argv[i]
+        );
+        ESTD_BUBBLE(
+            estd_string_builder_appendf(&metadata_builder, &temp, "Compression: None\r\n"),
+            "Could not append compression type for %s",
+            argv[i]
+        );
+        ESTD_BUBBLE(
+            estd_string_builder_appendf(&metadata_builder, &temp, "CRC32: %08x\r\n", crc32),
+            "Could not append crc32 for %s",
+            argv[i]
+        );
+        ESTD_BUBBLE(
+            estd_string_builder_appendf(&metadata_builder, &temp, "Permissions: %04o\r\n", permissions),
+            "Could not append permissions for %s",
+            argv[i]
+        );
+        ESTD_BUBBLE(
+            estd_string_builder_appendf(&metadata_builder, &temp, "\r\n"),
+            "Could not append header separator for %s",
+            argv[i]
+        );
+        fwrite(file_data.data, sizeof(char), file_data.length, sarma_file);
     }
+
+    ESTD_BUBBLE(estd_string_builder_write(&metadata_builder, sarma_file), "Could not write metadata");
+
+    fprintf(sarma_file, "Sarma: %20" PRIu64 "\r\n", metadata_builder->total_length);
 
     return ESTD_SUCCESS;
 }
