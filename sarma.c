@@ -143,11 +143,18 @@ int main(int argc, char* argv[]) {
         printf("Usage: sarma <output> <inputs...>\n");
         return ESTD_SUCCESS;
     }
-    char const* output_file = argv[1];
-    FILE* ESTD_CLEAN(fclose) fp = fopen(output_file, "wb");
-    fprintf(fp, "SARMA %d.%d\r\n", SARMA_VERSION_MAJOR, SARMA_VERSION_MINOR);
-    fprintf(fp, "File-Count: %d\r\n", argc - 2);
-    fprintf(fp, "\r\n");
+    EstdArena* ESTD_CLEAN(estd_arena_destroy) temp = NULL;
+    EstdString sarma_file_name;
+    EstdString dolma_file_name;
+    ESTD_BUBBLE(estd_string_format(&sarma_file_name, &temp, "%s", argv[1]), "Could not create sarma file name");
+    ESTD_BUBBLE(estd_string_format(&dolma_file_name, &temp, "%s.dolma", argv[1]), "Could not create dolma file name");
+
+    FILE* ESTD_CLEAN(fclose) sarma_file = fopen(sarma_file_name.data, "wb");
+    fprintf(sarma_file, "SARMA %d.%d\r\n", SARMA_VERSION_MAJOR, SARMA_VERSION_MINOR);
+    fprintf(sarma_file, "File-Count: %d\r\n", argc - 2);
+    fprintf(sarma_file, "\r\n");
+
+    FILE* ESTD_CLEAN(fclose) dolma_file = fopen(dolma_file_name.data, "wb");
     
     for (int i = 2; i < argc; i++) {
         EstdArena* ESTD_CLEAN(estd_arena_destroy) arena = NULL;
@@ -174,15 +181,15 @@ int main(int argc, char* argv[]) {
 
         ESTD_BUBBLE(estd_read_file(&file_data, &arena, file), "Could not read input file");
         uint32_t crc32 = estd_crc32(file_data);
-        fprintf(fp, "Content-Name: %" PRIestr "\r\n", ESTD_STRING_ARG(estd_path_get_filename(ESTD_CTRING(argv[i]))));
-        fprintf(fp, "Content-Size: %zu\r\n", file_data.length);
-        fprintf(fp, "Last-Accessed-Time: %s\r\n", last_access);
-        fprintf(fp, "Modification-Time: %s\r\n", modification);
-        fprintf(fp, "Compression: None\r\n");
-        fprintf(fp, "CRC32: %08x\r\n", crc32);
-        fprintf(fp, "Permissions: %04o\r\n", permissions);
-        fprintf(fp, "\r\n");
-        fwrite(file_data.data, sizeof(char), file_data.length, fp);
+        fprintf(sarma_file, "Content-Name: %" PRIestr "\r\n", ESTD_STRING_ARG(estd_path_get_filename(ESTD_CTRING(argv[i]))));
+        fprintf(sarma_file, "Content-Size: %zu\r\n", file_data.length);
+        fprintf(sarma_file, "Last-Accessed-Time: %s\r\n", last_access);
+        fprintf(sarma_file, "Modification-Time: %s\r\n", modification);
+        fprintf(sarma_file, "Compression: None\r\n");
+        fprintf(sarma_file, "CRC32: %08x\r\n", crc32);
+        fprintf(sarma_file, "Permissions: %04o\r\n", permissions);
+        fprintf(sarma_file, "\r\n");
+        fwrite(file_data.data, sizeof(char), file_data.length, dolma_file);
     }
 
     return ESTD_SUCCESS;
