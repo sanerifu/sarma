@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
         estd_string_builder_appendf(
             &metadata_builder,
             &temp,
-            "SARMA %d.%d\r\n",
+            "SARMA/%d.%d\r\n",
             SARMA_VERSION_MAJOR,
             SARMA_VERSION_MINOR
         ),
