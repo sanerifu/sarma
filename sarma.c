@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
 
     ESTD_BUBBLE(estd_string_builder_write(&metadata_builder, sarma_file), "Could not write metadata");
 
-    fprintf(sarma_file, "Sarma: %20" PRIu64 "\r\n", metadata_builder->total_length);
+    fprintf(sarma_file, "Sarma: %" PRIu64 "\r\n", metadata_builder->total_length);
 
     return ESTD_SUCCESS;
 }
