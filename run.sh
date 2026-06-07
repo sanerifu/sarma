@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/env sh
 
 cc sarma.c -std=c11 -o sarma -g3 #-fsanitize=address -fsanitize=leak
 
